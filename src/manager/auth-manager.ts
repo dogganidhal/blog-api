@@ -4,6 +4,7 @@ import { Connection, getConnection } from "typeorm";
 import User from "../model/entity/user";
 import { compare, hash } from "bcrypt";
 import { sign } from "jsonwebtoken";
+import ActivationCode from "../model/entity/activation-code";
 
 @AutoWired
 export default class AuthManager {
@@ -33,6 +34,13 @@ export default class AuthManager {
     await this.connection
       .getRepository(User)
       .save(user);
+    
+    let activationCodeEntity = new ActivationCode({ user: user })
+    let activationCode = await this.connection
+      .getRepository(ActivationCode)
+      .insert(activationCodeEntity);
+    console.log(activationCode.identifiers[0].id);
+    // TODO: Send confirmation email
   }
 
   public async login(request: LoginDto): Promise<AuthCredentialsDto> {
@@ -54,6 +62,25 @@ export default class AuthManager {
       accessToken: accessToken,
       expiresIn: this.jwtExpiresIn
     };
+  }
+  
+  public async activate(activationCode: string) {
+    try {
+      let activationCodeEntity = await this.connection
+        .getRepository(ActivationCode)
+        .findOne({ id: activationCode }, { relations: ["user"] });
+      await this.connection
+        .getRepository(User)
+        .save({
+          ...activationCodeEntity.user,
+          isActive: true
+        });
+      await this.connection
+        .getRepository(ActivationCode)
+        .delete(activationCodeEntity);
+    } catch {
+      throw "Invalid activation code";
+    }
   }
 
 }

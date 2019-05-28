@@ -1,8 +1,7 @@
-import { Path, POST, Errors, GET } from "typescript-rest";
+import { Path, POST, Errors, PathParam } from "typescript-rest";
 import { LoginDto, AuthCredentialsDto, SignUpDto } from "../model/dto";
 import { AutoWired, Inject } from "typescript-ioc";
 import AuthManager from "../manager/auth-manager";
-
 
 
 @AutoWired
@@ -29,6 +28,16 @@ export default class AuthController {
       return await this.authManager.login(loginRequest);
     } catch (exception) {
       throw new Errors.NotFoundError(exception);
+    }
+  }
+
+  @Path("/activate/:activationCode")
+  @POST
+  public async activate(@PathParam("activationCode") activationCode: string) {
+    try {
+      await this.authManager.activate(activationCode);
+    } catch (exception) {
+      throw new Errors.NotFoundError(activationCode);
     }
   }
 
