@@ -1,0 +1,25 @@
+{
+  "type": "mysql",
+  "host": "localhost",
+  "port": 8889,
+  "username": "root",
+  "password": "root",
+  "database": "blog",
+  "synchronize": true,
+  "logger": "file",
+  "logging": true,
+  "entities": [
+    "src/model/entity/**/*.ts"
+  ],
+  "migrations": [
+    "src/model/migration/**/*.ts"
+  ],
+  "subscribers": [
+    "src/model/subscriber/**/*.ts"
+  ],
+  "cli": {
+    "entitiesDir": "src/entity",
+    "migrationsDir": "src/migration",
+    "subscribersDir": "src/subscriber"
+  }
+}
