@@ -1,20 +1,29 @@
 import { AutoWired } from "typescript-ioc";
 import { LoginDto, AuthCredentialsDto, SignUpDto } from "../model/dto";
-import { Connection, getConnection } from "typeorm";
-import User from "../model/entity/user";
+import { getConnection } from "typeorm";
+import User, { UserRole } from "../model/entity/user";
 import { compare, hash } from "bcrypt";
 import { sign } from "jsonwebtoken";
 import ActivationCode from "../model/entity/activation-code";
 
+export enum ApiUserRole {
+  VISITOR = "VISITOR",
+  ADMIN = "ADMIN"
+}
+
+export interface TokenPayload {
+  id: string;
+  roles: UserRole;
+}
+
 @AutoWired
 export default class AuthManager {
 
-  private connection: Connection = getConnection();
-  private jwtSecret: string = "A_SUPER_SECRET_KEY";
-  private jwtExpiresIn: number = 3600;
+  private static jwtSecret: string = "A_SUPER_SECRET_KEY";
+  private static jwtExpiresIn: number = 3600;
 
   public async signUp(request: SignUpDto) {
-    let existingUsers = await this.connection
+    let existingUsers = await getConnection()
       .getRepository(User)
       .createQueryBuilder("user")
       .select("User")
@@ -31,12 +40,12 @@ export default class AuthManager {
       email: request.email,
       passwordHash: passwordHash
     });
-    await this.connection
+    await getConnection()
       .getRepository(User)
       .save(user);
     
     let activationCodeEntity = new ActivationCode({ user: user })
-    let activationCode = await this.connection
+    let activationCode = await getConnection()
       .getRepository(ActivationCode)
       .insert(activationCodeEntity);
     console.log(activationCode.identifiers[0].id);
@@ -44,7 +53,7 @@ export default class AuthManager {
   }
 
   public async login(request: LoginDto): Promise<AuthCredentialsDto> {
-    let user = await this.connection
+    let user = await getConnection()
       .getRepository(User)
       .findOne({ username: request.username })
     if (!user) {
@@ -54,28 +63,28 @@ export default class AuthManager {
       throw "User not found";
     }
     let accessToken = await sign(
-      { id: user.id, roles: user.roles },
-      this.jwtSecret,
-      { expiresIn: this.jwtExpiresIn }
+      <TokenPayload>{ id: user.id, roles: user.roles },
+      AuthManager.jwtSecret,
+      { expiresIn: AuthManager.jwtExpiresIn }
     );
     return {
       accessToken: accessToken,
-      expiresIn: this.jwtExpiresIn
+      expiresIn: AuthManager.jwtExpiresIn
     };
   }
   
   public async activate(activationCode: string) {
     try {
-      let activationCodeEntity = await this.connection
+      let activationCodeEntity = await getConnection()
         .getRepository(ActivationCode)
         .findOne({ id: activationCode }, { relations: ["user"] });
-      await this.connection
+      await getConnection()
         .getRepository(User)
         .save({
           ...activationCodeEntity.user,
           isActive: true
         });
-      await this.connection
+      await getConnection()
         .getRepository(ActivationCode)
         .delete(activationCodeEntity);
     } catch {
