@@ -37,6 +37,34 @@ export default class ArticleManager {
     };
   }
 
+  public async findAllArticles(): Promise<ArticleWithCommentsDto[]> {
+    let articles = await getConnection()
+      .getRepository(Article)
+      .find();
+    return Promise.all(
+      articles.map(async article => {
+        let comments = await getConnection()
+          .getRepository(Comment)
+          .find({ where: { article }, relations: ["user"] });
+        let likes = await getConnection()
+          .getRepository(Like)
+          .count({ article: article });
+        return {
+          ...article,
+          likes,
+          comments: comments.map(comment => {
+            return <CommentDto>{
+              ...comment,
+              user: <UserDto>{
+                username: comment.user.username
+              }
+            };
+          })
+        };
+      })
+    );
+  }
+
   public async createArticle(request: NewArticleDto) {
     let article = new Article(request);
     await getConnection()

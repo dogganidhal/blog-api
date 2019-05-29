@@ -13,6 +13,17 @@ export default class ArticleController extends BaseController {
   @Inject
   private articleManager: ArticleManager;
 
+  @GET
+  @Security([ApiUserRole.VISITOR, ApiUserRole.ADMIN])
+  public async getAllArticles(): Promise<ArticleWithCommentsDto[]> {
+    await this.assertAuthenticated();
+    try {
+      return await this.articleManager.findAllArticles();
+    } catch (exception) {
+      throw new Errors.NotFoundError(exception);
+    }
+  }
+
   @Path(":id")
   @GET
   @Security([ApiUserRole.VISITOR, ApiUserRole.ADMIN])
