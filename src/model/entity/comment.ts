@@ -1,5 +1,6 @@
 import { PrimaryGeneratedColumn, Column, CreateDateColumn, Entity, ManyToOne } from "typeorm";
 import Article from "./article";
+import User from "./user";
 
 
 @Entity()
@@ -16,6 +17,9 @@ export default class Comment {
 
   @ManyToOne(type => Article)
   public article: Article;
+
+  @ManyToOne(type => User)
+  public user: User;
 
   constructor()
   constructor(data: Partial<Comment>)

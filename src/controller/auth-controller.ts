@@ -2,14 +2,12 @@ import { Path, POST, Errors, PathParam } from "typescript-rest";
 import { LoginDto, AuthCredentialsDto, SignUpDto } from "../model/dto";
 import { AutoWired, Inject } from "typescript-ioc";
 import AuthManager from "../manager/auth-manager";
+import BaseController from "./base-controller";
 
 
 @AutoWired
 @Path("/auth")
-export default class AuthController {
-
-  @Inject
-  private authManager: AuthManager;
+export default class AuthController extends BaseController {
 
   @Path("/signup")
   @POST

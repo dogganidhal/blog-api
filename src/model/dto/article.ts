@@ -1,4 +1,7 @@
 
+export interface UserDto {
+  username: string;
+}
 
 export interface ArticleDto {
   id: string;
@@ -12,6 +15,7 @@ export interface CommentDto {
   id: string;
   content: string;
   created: Date;
+  user: UserDto;
 }
 
 export interface ArticleWithCommentsDto extends ArticleDto {
@@ -28,6 +32,5 @@ export interface NewArticleDto {
 }
 
 export interface NewCommentDto {
-  articleId: string;
   content: string;
 }

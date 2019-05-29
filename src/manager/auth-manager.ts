@@ -3,7 +3,7 @@ import { LoginDto, AuthCredentialsDto, SignUpDto } from "../model/dto";
 import { getConnection } from "typeorm";
 import User, { UserRole } from "../model/entity/user";
 import { compare, hash } from "bcrypt";
-import { sign } from "jsonwebtoken";
+import { sign, decode, verify } from "jsonwebtoken";
 import ActivationCode from "../model/entity/activation-code";
 
 export enum ApiUserRole {
@@ -71,6 +71,13 @@ export default class AuthManager {
       accessToken: accessToken,
       expiresIn: AuthManager.jwtExpiresIn
     };
+  }
+
+  public async decodeToken(token: string): Promise<User | undefined> {
+    let payload = await verify(token, AuthManager.jwtSecret) as TokenPayload;
+    return getConnection()
+      .getRepository(User)
+      .findOne(payload.id);
   }
   
   public async activate(activationCode: string) {
