@@ -17,6 +17,7 @@ export default class ArticleController extends BaseController {
   @GET
   @Security([ApiUserRole.VISITOR, ApiUserRole.ADMIN])
   public async getArticle(@PathParam("id") id: string): Promise<ArticleWithCommentsDto> {
+    await this.assertAuthenticated();
     try {
       return await this.articleManager.findArticleById(id);
     } catch (exception) {
@@ -27,6 +28,7 @@ export default class ArticleController extends BaseController {
   @POST
   @Security([ApiUserRole.ADMIN])
   public async createArticle(request: NewArticleDto) {
+    await this.assertAdmin();
     try {
       this.articleManager.createArticle(request);
     } catch (exception) {
@@ -38,6 +40,7 @@ export default class ArticleController extends BaseController {
   @PUT
   @Security([ApiUserRole.ADMIN])
   public async editArticle(@PathParam("id") id: string, request: NewArticleDto) {
+    await this.assertAdmin();
     try {
       await this.articleManager.editArticle(id, request);
     } catch (exception) {
@@ -47,11 +50,9 @@ export default class ArticleController extends BaseController {
 
   @PUT
   @Path("like/:id")
+  @Security([ApiUserRole.VISITOR, ApiUserRole.ADMIN])
   public async likeArticle(@PathParam("id") id: string) {
-    let user = await this.getUser();
-    if (!user) {
-      throw new Errors.UnauthorizedError();
-    }
+    let user = await this.getUserOrFail();
     try {
       await this.articleManager.likeArticle(user, id);
     } catch (exception) {
@@ -61,11 +62,9 @@ export default class ArticleController extends BaseController {
 
   @POST
   @Path("comment/:id")
+  @Security([ApiUserRole.VISITOR, ApiUserRole.ADMIN])
   public async commentArticle(@PathParam("id") id: string, request: NewCommentDto) {
-    let user = await this.getUser();
-    if (!user) {
-      throw new Errors.UnauthorizedError();
-    }
+    let user = await this.getUserOrFail();
     try {
       await this.articleManager.commentArticle(id, user, request);
     } catch (exception) {

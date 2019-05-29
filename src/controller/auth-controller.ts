@@ -1,7 +1,6 @@
 import { Path, POST, Errors, PathParam } from "typescript-rest";
 import { LoginDto, AuthCredentialsDto, SignUpDto } from "../model/dto";
-import { AutoWired, Inject } from "typescript-ioc";
-import AuthManager from "../manager/auth-manager";
+import { AutoWired } from "typescript-ioc";
 import BaseController from "./base-controller";
 
 
